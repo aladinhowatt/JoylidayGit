@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/InitScene.unity
+    guid: 069b300fec36d0049beb763bfcb12a97
+  - enabled: 0
+    path: Assets/Test.unity
+    guid: 621215bc1967b2242b1ac96bca98e411
+  - enabled: 1
+    path: Assets/Scenes/SampleScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/GameScene_RunnerMapGeneration.unity
+    guid: c168fe6cc2019ac419767d62eba09810
+  - enabled: 0
+    path: Assets/MarksAssets/ScreenOrientationWebGL/Example/ScreenOrientationWebGL.unity
+    guid: 77aa2728978306943b2b9eef4185871b
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
