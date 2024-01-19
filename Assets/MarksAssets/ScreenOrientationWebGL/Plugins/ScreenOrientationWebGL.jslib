@@ -4,10 +4,10 @@ mergeInto(LibraryManager.library, {
 			return;
 			
 		Module['ScreenOrientationWebGL'].orient = orient;
-		Module['ScreenOrientationWebGL'].orientBuf = Module['ScreenOrientationWebGL'].orientBuf || new Int32Array(buffer, orient, 1);
+		Module['ScreenOrientationWebGL'].orientBuf = Module['ScreenOrientationWebGL'].orientBuf || new Int32Array(HEAP8.buffer, orient, 1);
 		Module['ScreenOrientationWebGL'].updateOrient = Module['ScreenOrientationWebGL'].updateOrient || function () {
-			if (Module['ScreenOrientationWebGL'].orientBuf.byteLength === 0)//buffer changed size, need to get new reference
-				Module['ScreenOrientationWebGL'].orientBuf = new Int32Array(buffer, Module['ScreenOrientationWebGL'].orient, 1);
+			if (Module['ScreenOrientationWebGL'].orientBuf.byteLength === 0)//HEAP8.buffer changed size, need to get new reference
+				Module['ScreenOrientationWebGL'].orientBuf = new Int32Array(HEAP8.buffer, Module['ScreenOrientationWebGL'].orient, 1);
 			var ori = (screen.orientation || {}).type || screen.mozOrientation || screen.msOrientation;
 			if (!ori)//safari
 				ori = window.orientation === 0 ? "portrait-primary" : window.orientation === 180 ? "portrait-secondary" : window.orientation === 90 ? "landscape-primary" : "landscape-secondary";

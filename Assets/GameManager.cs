@@ -62,12 +62,18 @@ public class GameManager : MonoBehaviour
         {
             charManager.OnGetCoin += OnGetCoin;
             charManager.Dead += OnDead;
+           // Invoke("Test", 2);
         }
 
       
       
+
     }
 
+    void Test()
+    {
+        rewardManager.ShowRewardFrame(score);
+    }
     private void StartCountLine()
     {
         startPosition = imageTransform.anchoredPosition;
@@ -142,6 +148,7 @@ public class GameManager : MonoBehaviour
         StartCountLine();
         LineObject.SetActive(true);
         currentstage = 2;
+          
     }
     private void OnDestroy()
     {

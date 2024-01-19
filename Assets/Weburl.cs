@@ -47,7 +47,7 @@ public class Weburl : MonoBehaviour
     void Start()
     {
         if (!FirstFrame) return;
-       userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
+      // userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
         GetUser();
     //  return;
 
@@ -70,7 +70,8 @@ public class Weburl : MonoBehaviour
             userId = site;
             urlText.text = site;
 
-            GetUser();
+            Invoke("Delay", 2);
+           
             // use "site" here
         }
         else
@@ -79,7 +80,10 @@ public class Weburl : MonoBehaviour
             // no parameter with name "site" found
         }
     }
-
+    void Delay()
+    {
+        GetUser();
+    }
     internal void UpdateBonus()
     {
         CancelInvoke();
@@ -95,7 +99,7 @@ public class Weburl : MonoBehaviour
         Debug.Log("qweqewqewqweqw");
         RestClient.Get(new RequestHelper
         {
-            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-1",
+            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-10",
             Headers = new Dictionary<string, string>
             {
                 { "Authorization", token },
@@ -232,15 +236,50 @@ IEnumerator  ResultUpdate()
             PointText.text = person.bonus + " Joylicoin";
             // EditorUtility.DisplayDialog("Response", res.Text, "Ok");
         }).Catch(err => {
-          //  Debug.Log(err.Message);
-             ConnectingObject.SetActive(false);
-            ErrorObject.SetActive(true);
+            //  Debug.Log(err.Message);
+            // ConnectingObject.SetActive(false);
+            // ErrorObject.SetActive(true);
+            GetUser();
         }
         ); 
     }
  
     public void GetItem(int score)
     {
+
+        ItemCodeData itemDatass = new ItemCodeData();
+        int randomId = UnityEngine.Random.Range(0, 9999);
+        itemDatass.rw_id = randomId.ToString();
+        itemDatass.rw_isValid = "True";
+        string randomValue = UnityEngine.Random.Range(0f, 1f) < 0.7f ? "Reward 1 Token" : "Reward 2 Token";
+        itemDatass.rw_ItemDescription = randomValue;
+        itemDatass.rw_Score = score.ToString();
+        itemDatass.rw_Owner = "DFRAWEFCV!EFSF";
+
+
+        // ItemCodeDataList itemList = new ItemCodeDataList();
+        List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
+        string jsonString = PlayerPrefs.GetString("ItemCodeDataList");
+        if (!string.IsNullOrEmpty(jsonString))
+        {
+            itemCodeDataList = JsonConvert.DeserializeObject<List<ItemCodeData>>(jsonString);
+           // itemList = JsonConvert.SerializeObject(jsonString);
+        }
+        itemCodeDataList.Add(itemDatass);
+      //  itemList.itemCodeDataList.Add(itemDatass);
+
+        string updatedJsonString = JsonConvert.SerializeObject(itemCodeDataList);
+        Debug.Log(updatedJsonString);
+        PlayerPrefs.SetString("ItemCodeDataList", updatedJsonString);
+        PlayerPrefs.Save();
+
+
+        onSaveItem.Invoke(itemDatass);
+
+        ///////Rest api not for now
+        ////*
+        ///
+/*
         CancelInvoke();
         waiting = true;
         Invoke("TimeOut", 15);
@@ -281,94 +320,132 @@ IEnumerator  ResultUpdate()
             //  ConnectingObject.SetActive(false);
             //  ErrorObject.SetActive(true);
         }); 
+*/
     }
 
 
     public void GetUserItem()
     {
-        CancelInvoke();
-        waiting = true;
-        Invoke("TimeOut", 15);
-        UserJson userJson = new UserJson();
-        userJson.id = userId;
-
-    
-
-    var jsonstr = JsonConvert.SerializeObject(userJson);
-        ConnectingObject.SetActive(true);
-
-        string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
-        RestClient.Get(new RequestHelper
+        List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
+        string jsonString = PlayerPrefs.GetString("ItemCodeDataList");
+        if (!string.IsNullOrEmpty(jsonString))
         {
-            Headers = new Dictionary<string, string>
-            {
-                 { "Authorization", "Basic "+auth },
-            },
-            Uri = "http://163.47.11.172:5000/rewards_user/" + userId,
-        }).Then(res =>
-        {
-            waiting = false;
-            ConnectingObject.SetActive(false);
-            //Debug.Log(res.Text);
+            itemCodeDataList = JsonConvert.DeserializeObject<List<ItemCodeData>>(jsonString);
+            // itemList = JsonConvert.SerializeObject(jsonString);
+        }
+        onGetUserItem.Invoke(itemCodeDataList);
 
-
-            List<ItemCodeData> itemDatass = JsonConvert.DeserializeObject<List<ItemCodeData>>(res.Text);
-          //  Debug.Log(itemDatass.Count);
-            onGetUserItem.Invoke(itemDatass);
+        //////Not rest for now 
+        /*
+                CancelInvoke();
+                waiting = true;
+                Invoke("TimeOut", 15);
+                UserJson userJson = new UserJson();
+                userJson.id = userId;
 
 
 
-        }).Catch(err =>
-        {
-            Debug.Log(err.Message);
-            if(err.Message.Contains("404"))
-            {
-                NoItemObject.SetActive(true);
-            }
-            // Debug.Log(err.Message);
-            //  ConnectingObject.SetActive(false);
-            //  ErrorObject.SetActive(true);
-        });
+            var jsonstr = JsonConvert.SerializeObject(userJson);
+                ConnectingObject.SetActive(true);
+
+                string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
+                RestClient.Get(new RequestHelper
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                         { "Authorization", "Basic "+auth },
+                    },
+                    Uri = "http://163.47.11.172:5000/rewards_user/" + userId,
+                }).Then(res =>
+                {
+                    waiting = false;
+                    ConnectingObject.SetActive(false);
+                    //Debug.Log(res.Text);
+
+
+                    List<ItemCodeData> itemDatass = JsonConvert.DeserializeObject<List<ItemCodeData>>(res.Text);
+                  //  Debug.Log(itemDatass.Count);
+                    onGetUserItem.Invoke(itemDatass);
+
+
+
+                }).Catch(err =>
+                {
+                    Debug.Log(err.Message);
+                    if(err.Message.Contains("404"))
+                    {
+                        NoItemObject.SetActive(true);
+                    }
+                    // Debug.Log(err.Message);
+                    //  ConnectingObject.SetActive(false);
+                    //  ErrorObject.SetActive(true);
+                });
+        */
     }
 
 
     public void UseItemCode(string itemId)
     {
-        CancelInvoke();
-        waiting = true;
-        Invoke("TimeOut", 15);
-        UserJson userJson = new UserJson();
-        userJson.id = userId;
-
-
-
-        var jsonstr = JsonConvert.SerializeObject(userJson);
-        ConnectingObject.SetActive(true);
-
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonstr);
-        string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
-        RestClient.Delete(new RequestHelper
+        List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
+        string jsonString = PlayerPrefs.GetString("ItemCodeDataList");
+        if (!string.IsNullOrEmpty(jsonString))
         {
-            Headers = new Dictionary<string, string>
+            itemCodeDataList = JsonConvert.DeserializeObject<List<ItemCodeData>>(jsonString);
+            // itemList = JsonConvert.SerializeObject(jsonString);
+        }
+        for(int i = 0; i< itemCodeDataList.Count;i++)
+        {
+            if(itemCodeDataList[i].rw_id.Equals(itemId))
             {
-                 { "Authorization", "Basic "+auth },
-            },
-            Uri = "http://163.47.11.172:5000/reward/"+itemId,
-            BodyRaw = jsonBytes,
-        }).Then(res =>
-        {
-            waiting = false;
-            ConnectingObject.SetActive(false);
-          //  Debug.Log(res.Text);
-            onCompleteUseItem.Invoke();
-        }).Catch(err =>
-        {
-           // Debug.Log(err.Message);
-            // Debug.Log(err.Message);
-            //  ConnectingObject.SetActive(false);
-            //  ErrorObject.SetActive(true);
-        });
+                itemCodeDataList.RemoveAt(i);
+                break;
+            }
+        }
+
+        string updatedJsonString = JsonConvert.SerializeObject(itemCodeDataList);
+        Debug.Log(updatedJsonString);
+        PlayerPrefs.SetString("ItemCodeDataList", updatedJsonString);
+        PlayerPrefs.Save();
+        onCompleteUseItem.Invoke();
+        ///////REst for now
+        /*
+                CancelInvoke();
+                waiting = true;
+                Invoke("TimeOut", 15);
+                UserJson userJson = new UserJson();
+                userJson.id = userId;
+
+
+
+                var jsonstr = JsonConvert.SerializeObject(userJson);
+                ConnectingObject.SetActive(true);
+
+                byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonstr);
+                string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
+                RestClient.Delete(new RequestHelper
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                         { "Authorization", "Basic "+auth },
+                    },
+                    Uri = "http://163.47.11.172:5000/reward/"+itemId,
+                    BodyRaw = jsonBytes,
+                }).Then(res =>
+                {
+                    waiting = false;
+                    ConnectingObject.SetActive(false);
+                  //  Debug.Log(res.Text);
+                    onCompleteUseItem.Invoke();
+                }).Catch(err =>
+                {
+                   // Debug.Log(err.Message);
+                    // Debug.Log(err.Message);
+                    //  ConnectingObject.SetActive(false);
+                    //  ErrorObject.SetActive(true);
+                });
+        */
     }
+
     // Update is called once per frame
     void Update()
     {
@@ -472,5 +549,10 @@ public class UserJson
     public string id { get; set; }
 
 }
+    [System.Serializable]
+    public class ItemCodeDataList
+    {
+        public List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
+    }
 
 }
