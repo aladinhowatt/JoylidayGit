@@ -7,7 +7,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
+using static DatabaseConnector2;
 
 public class Weburl : MonoBehaviour
 {
@@ -47,9 +49,9 @@ public class Weburl : MonoBehaviour
     void Start()
     {
         if (!FirstFrame) return;
-      // userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
+       userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
         GetUser();
-    //  return;
+      return;
 
         var parameters = URLParameter.GetSearchParameters();
 
@@ -99,7 +101,7 @@ public class Weburl : MonoBehaviour
         Debug.Log("qweqewqewqweqw");
         RestClient.Get(new RequestHelper
         {
-            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-10",
+            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-1",
             Headers = new Dictionary<string, string>
             {
                 { "Authorization", token },
@@ -243,10 +245,97 @@ IEnumerator  ResultUpdate()
         }
         ); 
     }
- 
-    public void GetItem(int score)
+
+
+    [System.Serializable]
+    public class UserReward
+    {
+        public Dictionary<string, string> rewardData;
+    }
+
+    public IEnumerator GetItem(int score)
     {
 
+       var rewardItem =  RandomizeRewardItem( DatabaseConnector2.rewardItems);
+        Debug.Log(rewardItem.description);
+        string url = "https://joyliday-2f073-default-rtdb.asia-southeast1.firebasedatabase.app/" + userId + ".json";
+
+        Dictionary<string, string> userReward = new Dictionary<string, string>();
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string jsonData = request.downloadHandler.text;
+               
+                Debug.Log("JSON data: " + jsonData);
+                try
+                {
+                    //  UserReward userReward = JsonConvert.DeserializeObject<UserReward>(jsonData);
+                    userReward = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonData);
+                    if (userReward != null )
+                    {
+                        // Deserialization successful, process userReward object
+                        Debug.Log("Deserialization successful:");
+                        foreach (var pair in userReward)
+                        {
+                            Debug.Log("Key: " + pair.Key);
+                            Debug.Log("Value: " + pair.Value);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Deserialization failed: UserReward object or rewardData dictionary is null");
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Debug.LogError("Error during deserialization: " + ex.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("Error getting data: " + request.error);
+            }
+        }
+
+        yield return null;
+
+        // Generate a unique key for the new data entry
+        string newKey = Guid.NewGuid().ToString();
+
+        // Construct the JSON data with the new key and description
+        string data = "{\"" + newKey + "\":\"" + rewardItem.description + "\"}";
+
+        userReward.Add(newKey, rewardItem.description);
+        // Log the data before sending the request
+        Debug.Log("Data to send: " + data);
+
+        var userRewardJson = JsonConvert.SerializeObject(userReward);
+        Debug.Log(userRewardJson);
+        
+        // Create a POST request with the data
+        using (UnityWebRequest request = UnityWebRequest.Put(url, userRewardJson))
+        {
+
+           request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send the request
+            yield return request.SendWebRequest();
+
+            // Check for errors
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("POST request sent successfully");
+            }
+            else
+            {
+                Debug.LogError("Error sending POST request: " + request.error);
+            }
+        }
+
+        /*
         ItemCodeData itemDatass = new ItemCodeData();
         int randomId = UnityEngine.Random.Range(0, 9999);
         itemDatass.rw_id = randomId.ToString();
@@ -274,54 +363,100 @@ IEnumerator  ResultUpdate()
         PlayerPrefs.Save();
 
 
-        onSaveItem.Invoke(itemDatass);
+        onSaveItem.Invoke(itemDatass);*/
 
         ///////Rest api not for now
         ////*
         ///
-/*
-        CancelInvoke();
-        waiting = true;
-        Invoke("TimeOut", 15);
-        GetITemData itemData = new GetITemData();
-        itemData.id = userId;
-        itemData.points = score.ToString();
-        var jsonstr = JsonConvert.SerializeObject(itemData);
-       // Debug.Log(jsonstr);
-        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonstr);
-        string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
-        ConnectingObject.SetActive(true);
-       // Debug.Log(jsonBytes);
-        //Debug.Log("Basic " + auth);
-        RestClient.Post(new RequestHelper
-        {
-            Headers = new Dictionary<string, string>
-            {
-                 { "Authorization", "Basic "+auth },
-            },
-            Uri = "http://163.47.11.172:5000/reward_save",           
-            BodyRaw = jsonBytes,
-            ContentType = "application/json",
-        }).Then(res =>
-        {
-            waiting =false;
-            ConnectingObject.SetActive(false);
-          //  Debug.Log(res.Text);
-            ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
-          //  ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
-        //  Debug.Log(itemDatass[0].rw_ItemDescription);
-            onSaveItem.Invoke(itemDatass);
+        /*
+                CancelInvoke();
+                waiting = true;
+                Invoke("TimeOut", 15);
+                GetITemData itemData = new GetITemData();
+                itemData.id = userId;
+                itemData.points = score.ToString();
+                var jsonstr = JsonConvert.SerializeObject(itemData);
+               // Debug.Log(jsonstr);
+                byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonstr);
+                string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
+                ConnectingObject.SetActive(true);
+               // Debug.Log(jsonBytes);
+                //Debug.Log("Basic " + auth);
+                RestClient.Post(new RequestHelper
+                {
+                    Headers = new Dictionary<string, string>
+                    {
+                         { "Authorization", "Basic "+auth },
+                    },
+                    Uri = "http://163.47.11.172:5000/reward_save",           
+                    BodyRaw = jsonBytes,
+                    ContentType = "application/json",
+                }).Then(res =>
+                {
+                    waiting =false;
+                    ConnectingObject.SetActive(false);
+                  //  Debug.Log(res.Text);
+                    ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
+                  //  ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
+                //  Debug.Log(itemDatass[0].rw_ItemDescription);
+                    onSaveItem.Invoke(itemDatass);
 
 
 
-        }).Catch(err =>
-        {
-            Debug.Log(err.Message);
-            //  ConnectingObject.SetActive(false);
-            //  ErrorObject.SetActive(true);
-        }); 
-*/
+                }).Catch(err =>
+                {
+                    Debug.Log(err.Message);
+                    //  ConnectingObject.SetActive(false);
+                    //  ErrorObject.SetActive(true);
+                }); 
+        */
     }
+
+
+
+    RewardItem RandomizeRewardItem(List<RewardItem> originalList)
+    {
+        // Calculate the total weight based on tier chances
+        int totalWeight = 0;
+        foreach (var item in originalList)
+        {
+            totalWeight += GetTierWeight(item.tier);
+        }
+
+        // Generate a random value within the total weight
+        int randomValue = UnityEngine.Random.Range(0, totalWeight);
+
+        // Find the reward item corresponding to the random value
+        int cumulativeWeight = 0;
+        foreach (var item in originalList)
+        {
+            cumulativeWeight += GetTierWeight(item.tier);
+            if (randomValue < cumulativeWeight)
+            {
+                return item;
+            }
+        }
+
+        // This should never be reached
+        return originalList[0];
+    }
+
+    int GetTierWeight(int tier)
+    {
+        // Adjust weights according to tier chances
+        switch (tier)
+        {
+            case 1:
+                return 50; // 50% chance
+            case 2:
+                return 30; // 30% chance
+            case 3:
+                return 20; // 20% chance
+            default:
+                return 0;
+        }
+    }
+
 
 
     public void GetUserItem()
