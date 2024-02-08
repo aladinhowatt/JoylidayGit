@@ -19,7 +19,7 @@ public class ItemCodeManager : MonoBehaviour
 
     public GameObject UseItemCodeCanvas;
     public Text ItemCodeDescriptionText;
-    ItemCodeData currentCode;
+    KeyValuePair<string, string> currentCode;
     void Start()
     {
         webUrl.onGetUserItem += onGetUSerItem;
@@ -29,7 +29,7 @@ public class ItemCodeManager : MonoBehaviour
 
     
 
-    private void onGetUSerItem(List<ItemCodeData> itemDatas)
+    private void onGetUSerItem(Dictionary<string,string> itemDatas)
     {
         MainFrame.SetActive(false);
         ItemCodeFrame.SetActive(true);
@@ -43,7 +43,7 @@ public class ItemCodeManager : MonoBehaviour
         foreach (var a in itemDatas)
         {
             var qq = Instantiate(itemCodePrefab.gameObject, contEntParent.transform);
-            qq.GetComponent<ItemCode>().setText(a.rw_ItemDescription);
+            qq.GetComponent<ItemCode>().setText(a.Value);
             qq.GetComponent<Button>().onClick.AddListener(delegate { ShowUseItemPopup(a); });
 
         }
@@ -64,8 +64,7 @@ public class ItemCodeManager : MonoBehaviour
 
     public void OnClickItemCodeButton()
     {
-        webUrl.GetUserItem();
-
+       StartCoroutine(webUrl.GetUserItem());
 
 
 
@@ -82,19 +81,19 @@ public class ItemCodeManager : MonoBehaviour
 
     }
 
-    private void ShowUseItemPopup(ItemCodeData a)
+    private void ShowUseItemPopup(KeyValuePair<string,string> a)
     {
 
         UseItemCodeCanvas.SetActive(true);
 
-        ItemCodeDescriptionText.text = a.rw_ItemDescription;
+        ItemCodeDescriptionText.text = a.Value.ToString();
         currentCode = a;
         //SceneManager.LoadScene("SampleScene");
     }
 
     public void OnClickUseITemCode()
     {
-        webUrl.UseItemCode(currentCode.rw_id);
+        StartCoroutine(webUrl.UseItemCode(currentCode.Key));
     }
 
     private void onCompleteUseItemCode()

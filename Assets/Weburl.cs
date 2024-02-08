@@ -29,7 +29,7 @@ public class Weburl : MonoBehaviour
     public delegate void OnSaveItem(ItemCodeData itemData);
     public OnSaveItem onSaveItem;
 
-    public delegate void OnGetUserItem(List<ItemCodeData> itemDatas);
+    public delegate void OnGetUserItem(Dictionary<string,string> itemDatas);
     public OnGetUserItem onGetUserItem;
 
     public delegate void OnCompleteUseItem();
@@ -300,8 +300,6 @@ IEnumerator  ResultUpdate()
             }
         }
 
-        yield return null;
-
         // Generate a unique key for the new data entry
         string newKey = Guid.NewGuid().ToString();
 
@@ -365,51 +363,6 @@ IEnumerator  ResultUpdate()
 
         onSaveItem.Invoke(itemDatass);*/
 
-        ///////Rest api not for now
-        ////*
-        ///
-        /*
-                CancelInvoke();
-                waiting = true;
-                Invoke("TimeOut", 15);
-                GetITemData itemData = new GetITemData();
-                itemData.id = userId;
-                itemData.points = score.ToString();
-                var jsonstr = JsonConvert.SerializeObject(itemData);
-               // Debug.Log(jsonstr);
-                byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonstr);
-                string auth = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Username}:{Password}"));
-                ConnectingObject.SetActive(true);
-               // Debug.Log(jsonBytes);
-                //Debug.Log("Basic " + auth);
-                RestClient.Post(new RequestHelper
-                {
-                    Headers = new Dictionary<string, string>
-                    {
-                         { "Authorization", "Basic "+auth },
-                    },
-                    Uri = "http://163.47.11.172:5000/reward_save",           
-                    BodyRaw = jsonBytes,
-                    ContentType = "application/json",
-                }).Then(res =>
-                {
-                    waiting =false;
-                    ConnectingObject.SetActive(false);
-                  //  Debug.Log(res.Text);
-                    ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
-                  //  ItemCodeData itemDatass = JsonConvert.DeserializeObject<ItemCodeData>(res.Text);
-                //  Debug.Log(itemDatass[0].rw_ItemDescription);
-                    onSaveItem.Invoke(itemDatass);
-
-
-
-                }).Catch(err =>
-                {
-                    Debug.Log(err.Message);
-                    //  ConnectingObject.SetActive(false);
-                    //  ErrorObject.SetActive(true);
-                }); 
-        */
     }
 
 
@@ -459,16 +412,63 @@ IEnumerator  ResultUpdate()
 
 
 
-    public void GetUserItem()
+    public IEnumerator GetUserItem()
     {
+        string url = "https://joyliday-2f073-default-rtdb.asia-southeast1.firebasedatabase.app/" + userId + ".json";
+
+        Dictionary<string, string> userReward = new Dictionary<string, string>();
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string jsonData = request.downloadHandler.text;
+
+                Debug.Log("JSON data: " + jsonData);
+                try
+                {
+                    //  UserReward userReward = JsonConvert.DeserializeObject<UserReward>(jsonData);
+                    userReward = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonData);
+                    if (userReward != null)
+                    {
+                        // Deserialization successful, process userReward object
+                        Debug.Log("Deserialization successful:");
+                        foreach (var pair in userReward)
+                        {
+                            Debug.Log("Key: " + pair.Key);
+                            Debug.Log("Value: " + pair.Value);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Deserialization failed: UserReward object or rewardData dictionary is null");
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Debug.LogError("Error during deserialization: " + ex.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("Error getting data: " + request.error);
+            }
+        }
+
+       
+
+        /*
         List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
         string jsonString = PlayerPrefs.GetString("ItemCodeDataList");
         if (!string.IsNullOrEmpty(jsonString))
         {
             itemCodeDataList = JsonConvert.DeserializeObject<List<ItemCodeData>>(jsonString);
             // itemList = JsonConvert.SerializeObject(jsonString);
-        }
-        onGetUserItem.Invoke(itemCodeDataList);
+        }*/
+        onGetUserItem.Invoke(userReward);
+        
+
 
         //////Not rest for now 
         /*
@@ -519,8 +519,26 @@ IEnumerator  ResultUpdate()
     }
 
 
-    public void UseItemCode(string itemId)
+    public IEnumerator UseItemCode(string itemId)
     {
+        string aa = "https://joyliday-2f073-default-rtdb.asia-southeast1.firebasedatabase.app/" + userId + "/" + itemId + ".json";
+        string output = aa.Replace(" ", ""); // Replace white space with empty string
+        Debug.Log(output); // Output: "HelloWorld"
+        using (UnityWebRequest request = UnityWebRequest.Delete(output))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                onCompleteUseItem.Invoke();
+                Debug.LogError("Success: " + request.result);
+            }
+            else
+            {
+                Debug.LogError("Error getting data: " + request.error);
+            }
+        }
+        /*
         List<ItemCodeData> itemCodeDataList = new List<ItemCodeData>();
         string jsonString = PlayerPrefs.GetString("ItemCodeDataList");
         if (!string.IsNullOrEmpty(jsonString))
@@ -542,6 +560,7 @@ IEnumerator  ResultUpdate()
         PlayerPrefs.SetString("ItemCodeDataList", updatedJsonString);
         PlayerPrefs.Save();
         onCompleteUseItem.Invoke();
+        */
         ///////REst for now
         /*
                 CancelInvoke();
