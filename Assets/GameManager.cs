@@ -62,6 +62,8 @@ public class GameManager : MonoBehaviour
         {
             charManager.OnGetCoin += OnGetCoin;
             charManager.Dead += OnDead;
+
+            /////Test Code
            // Invoke("Test", 2);
         }
 
@@ -72,6 +74,7 @@ public class GameManager : MonoBehaviour
 
     void Test()
     {
+
         rewardManager.ShowRewardFrame(score);
     }
     private void StartCountLine()

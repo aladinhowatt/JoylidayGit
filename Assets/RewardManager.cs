@@ -33,6 +33,7 @@ public class RewardManager : MonoBehaviour
 
     public void ShowRewardFrame(int score)
     {
+       // RewardFrame.SetActive(true);
         StartCoroutine(webUrl.GetItem(score));
        
 

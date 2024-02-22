@@ -49,9 +49,9 @@ public class Weburl : MonoBehaviour
     void Start()
     {
         if (!FirstFrame) return;
-       userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
+     // userId = "2U4cBujerbxGPKNn7N7e5RoV1gS";
         GetUser();
-      return;
+    //  return;
 
         var parameters = URLParameter.GetSearchParameters();
 
@@ -98,10 +98,9 @@ public class Weburl : MonoBehaviour
         waiting = true;
         Invoke("TimeOut", 15);
         ConnectingObject.SetActive(true);
-        Debug.Log("qweqewqewqweqw");
         RestClient.Get(new RequestHelper
         {
-            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-1",
+            Uri = "http://188.166.198.198:5000/bonus_update_step1/" + userId + "?bonus_return=-10",
             Headers = new Dictionary<string, string>
             {
                 { "Authorization", token },
@@ -110,7 +109,7 @@ public class Weburl : MonoBehaviour
             },
         }).Then(res =>
         {
-           Debug.Log(res.Text);
+          // Debug.Log(res.Text);
 
             RefCode refCode = JsonConvert.DeserializeObject<RefCode>(res.Text);
           //  Debug.Log(refCode.refcode);
@@ -257,7 +256,7 @@ IEnumerator  ResultUpdate()
     {
 
        var rewardItem =  RandomizeRewardItem( DatabaseConnector2.rewardItems);
-        Debug.Log(rewardItem.description);
+     //  Debug.Log(rewardItem.description);
         string url = "https://joyliday-2f073-default-rtdb.asia-southeast1.firebasedatabase.app/" + userId + ".json";
 
         Dictionary<string, string> userReward = new Dictionary<string, string>();
@@ -269,7 +268,7 @@ IEnumerator  ResultUpdate()
             {
                 string jsonData = request.downloadHandler.text;
                
-                Debug.Log("JSON data: " + jsonData);
+               // Debug.Log("JSON data: " + jsonData);
                 try
                 {
                     //  UserReward userReward = JsonConvert.DeserializeObject<UserReward>(jsonData);
@@ -280,18 +279,21 @@ IEnumerator  ResultUpdate()
                         Debug.Log("Deserialization successful:");
                         foreach (var pair in userReward)
                         {
-                            Debug.Log("Key: " + pair.Key);
-                            Debug.Log("Value: " + pair.Value);
+                           // Debug.Log("Key: " + pair.Key);
+                           // Debug.Log("Value: " + pair.Value);
                         }
                     }
                     else
                     {
                         Debug.LogError("Deserialization failed: UserReward object or rewardData dictionary is null");
+                        userReward = new Dictionary<string, string>();
+                       // Debug.Log(userReward);
                     }
                 }
                 catch (JsonException ex)
                 {
                     Debug.LogError("Error during deserialization: " + ex.Message);
+             
                 }
             }
             else
@@ -308,10 +310,10 @@ IEnumerator  ResultUpdate()
 
         userReward.Add(newKey, rewardItem.description);
         // Log the data before sending the request
-        Debug.Log("Data to send: " + data);
+        //Debug.Log("Data to send: " + data);
 
         var userRewardJson = JsonConvert.SerializeObject(userReward);
-        Debug.Log(userRewardJson);
+       // Debug.Log(userRewardJson);
         
         // Create a POST request with the data
         using (UnityWebRequest request = UnityWebRequest.Put(url, userRewardJson))
@@ -325,7 +327,14 @@ IEnumerator  ResultUpdate()
             // Check for errors
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("POST request sent successfully");
+                //Debug.Log("POST request sent successfully");
+                ItemCodeData itemDatass = new ItemCodeData();
+                itemDatass.rw_id = rewardItem.id.ToString();
+                itemDatass.rw_isValid = "True";
+                itemDatass.rw_ItemDescription = rewardItem.description;
+                itemDatass.rw_Score = score.ToString();
+                itemDatass.rw_Owner = "DFRAWEFCV!EFSF";
+                onSaveItem.Invoke(itemDatass);
             }
             else
             {
@@ -425,7 +434,7 @@ IEnumerator  ResultUpdate()
             {
                 string jsonData = request.downloadHandler.text;
 
-                Debug.Log("JSON data: " + jsonData);
+              //  Debug.Log("JSON data: " + jsonData);
                 try
                 {
                     //  UserReward userReward = JsonConvert.DeserializeObject<UserReward>(jsonData);
@@ -436,8 +445,8 @@ IEnumerator  ResultUpdate()
                         Debug.Log("Deserialization successful:");
                         foreach (var pair in userReward)
                         {
-                            Debug.Log("Key: " + pair.Key);
-                            Debug.Log("Value: " + pair.Value);
+                           // Debug.Log("Key: " + pair.Key);
+                           // Debug.Log("Value: " + pair.Value);
                         }
                     }
                     else
@@ -523,7 +532,7 @@ IEnumerator  ResultUpdate()
     {
         string aa = "https://joyliday-2f073-default-rtdb.asia-southeast1.firebasedatabase.app/" + userId + "/" + itemId + ".json";
         string output = aa.Replace(" ", ""); // Replace white space with empty string
-        Debug.Log(output); // Output: "HelloWorld"
+      //  Debug.Log(output); // Output: "HelloWorld"
         using (UnityWebRequest request = UnityWebRequest.Delete(output))
         {
             yield return request.SendWebRequest();
@@ -531,7 +540,7 @@ IEnumerator  ResultUpdate()
             if (request.result == UnityWebRequest.Result.Success)
             {
                 onCompleteUseItem.Invoke();
-                Debug.LogError("Success: " + request.result);
+                Debug.Log("Success: " + request.result);
             }
             else
             {

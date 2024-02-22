@@ -26,7 +26,6 @@ public class UiManager : MonoBehaviour
 
     public void StartGame()
     {
-        Debug.Log("qqqqqq");
          DecreaseBonus();
 
     
@@ -38,7 +37,6 @@ public class UiManager : MonoBehaviour
         audi.PlayOneShot(clickSound);
         Ui.SetActive(false);
         Bg.SetActive(false);
-        Debug.Log("SADSADS");
        requestObject.onCompleteDelegateBonus -= OnUpdateBonus;
        soundManager.PlayInGameSound();
         SceneManager.LoadScene("GameScene_RunnerMapGeneration");
@@ -56,7 +54,6 @@ public class UiManager : MonoBehaviour
     }
     private void DecreaseBonus()
     {
-        Debug.Log("bbbb");
         requestObject.UpdateBonus();
     }
 
